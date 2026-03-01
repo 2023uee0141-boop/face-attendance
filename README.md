@@ -1,5 +1,8 @@
 # Face Recognition Attendance System
 
+#Link for the demo video.
+https://drive.google.com/file/d/1DgbfG-3LT0zIbq25GVzi_8q0d45k30kA/view?usp=sharing
+
 A complete face recognition-based attendance system using React.js, Node.js, MongoDB, and Python AI models (MTCNN, ArcFace, Silent-FAS, HNSW).
 
 ---
