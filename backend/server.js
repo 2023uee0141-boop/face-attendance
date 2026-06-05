@@ -24,9 +24,10 @@ const app = express();
 
 // CORS - allow frontend to communicate with backend
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
+  origin: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
 }));
 
 // Parse JSON bodies (limit increased for base64 images)
