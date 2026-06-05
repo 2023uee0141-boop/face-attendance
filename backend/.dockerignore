@@ -1,0 +1,9 @@
+node_modules
+venv
+.env
+*.log
+uploads/*
+.DS_Store
+.git
+.gitignore
+nodemon.json
