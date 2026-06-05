@@ -8,6 +8,7 @@
 const fs = require('fs');
 const path = require('path');
 const Student = require('../models/Student');
+const FaceEmbedding = require('../models/FaceEmbedding');
 const { runPythonScript } = require('../utils/pythonRunner');
 
 /**
@@ -94,16 +95,17 @@ const registerStudent = async (req, res) => {
 
     // Step 2.5: Prevent duplicate registration by face match against existing students
     // If the same face is already registered (even with a different rollNumber), reject.
-    const existingStudents = await Student.find().select('_id name rollNumber embedding');
-    if (existingStudents.length > 0) {
+    const existingEmbeddings = await FaceEmbedding.find().populate('studentId', 'name rollNumber');
+    const existingEmbeddingsFiltered = existingEmbeddings.filter(e => e.studentId);
+    if (existingEmbeddingsFiltered.length > 0) {
       const dedupeThreshold = parseFloat(process.env.REGISTRATION_DEDUPE_THRESHOLD || '0.62');
       const embeddingsData = {
         query: embedding,
-        students: existingStudents.map((s) => ({
-          id: s._id.toString(),
-          name: s.name,
-          rollNumber: s.rollNumber,
-          embedding: s.embedding,
+        students: existingEmbeddingsFiltered.map((e) => ({
+          id: e.studentId._id.toString(),
+          name: e.studentId.name,
+          rollNumber: e.studentId.rollNumber,
+          embedding: e.embedding,
         })),
         threshold: dedupeThreshold,
       };
@@ -135,8 +137,13 @@ const registerStudent = async (req, res) => {
     const student = await Student.create({
       name: name.trim(),
       rollNumber: rollNumber.toUpperCase().trim(),
-      embedding,
       imageUrl: imagePath,
+    });
+
+    // Step 3.5: Store face embedding in MongoDB FaceEmbedding collection
+    await FaceEmbedding.create({
+      studentId: student._id,
+      embedding,
     });
 
     console.log(`[STUDENT] ✅ Student registered: ${student.name} (${student.rollNumber})`);
@@ -168,9 +175,7 @@ const registerStudent = async (req, res) => {
  */
 const getAllStudents = async (req, res) => {
   try {
-    // Don't return embeddings in the list (large data)
     const students = await Student.find()
-      .select('-embedding')
       .sort({ createdAt: -1 });
 
     res.json({
@@ -189,7 +194,7 @@ const getAllStudents = async (req, res) => {
  */
 const getStudentById = async (req, res) => {
   try {
-    const student = await Student.findById(req.params.id).select('-embedding');
+    const student = await Student.findById(req.params.id);
 
     if (!student) {
       return res.status(404).json({ error: 'Student not found.' });
@@ -208,6 +213,9 @@ const getStudentById = async (req, res) => {
  */
 const deleteStudent = async (req, res) => {
   try {
+    // Delete corresponding face embedding
+    await FaceEmbedding.findOneAndDelete({ studentId: req.params.id });
+
     const student = await Student.findByIdAndDelete(req.params.id);
 
     if (!student) {

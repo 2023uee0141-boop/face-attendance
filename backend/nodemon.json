@@ -1,0 +1,17 @@
+{
+  "ignore": [
+    "uploads/*",
+    "venv/*",
+    "node_modules/*",
+    "*.log",
+    "*.json"
+  ],
+  "watch": [
+    "controllers/",
+    "models/",
+    "routes/",
+    "utils/",
+    "server.js"
+  ],
+  "ext": "js,mjs,cjs,json"
+}

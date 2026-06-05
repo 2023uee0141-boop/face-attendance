@@ -1,17 +1,17 @@
 /**
- * Admin Model
+ * User Model
  * 
- * Stores admin credentials with hashed passwords.
- * Admins have full system access.
+ * Stores user credentials (name, email, password, role)
+ * for both administrators and teachers.
  */
 
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
-const adminSchema = new mongoose.Schema({
+const userSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: [true, 'Admin name is required'],
+    required: [true, 'Name is required'],
     trim: true,
   },
   email: {
@@ -30,8 +30,8 @@ const adminSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    default: 'admin',
-    immutable: true,
+    enum: ['admin', 'teacher'],
+    default: 'teacher',
   },
   createdAt: {
     type: Date,
@@ -40,7 +40,7 @@ const adminSchema = new mongoose.Schema({
 });
 
 // Hash password before saving
-adminSchema.pre('save', async function (next) {
+userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();
   const salt = await bcrypt.genSalt(12);
   this.password = await bcrypt.hash(this.password, salt);
@@ -48,8 +48,8 @@ adminSchema.pre('save', async function (next) {
 });
 
 // Method to compare passwords
-adminSchema.methods.comparePassword = async function (candidatePassword) {
+userSchema.methods.comparePassword = async function (candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
 };
 
-module.exports = mongoose.model('Admin', adminSchema);
+module.exports = mongoose.model('User', userSchema);

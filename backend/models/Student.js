@@ -22,16 +22,6 @@ const studentSchema = new mongoose.Schema({
     trim: true,
     uppercase: true,
   },
-  embedding: {
-    type: [Number],  // Array of 512 floats (ArcFace embedding)
-    required: [true, 'Face embedding is required'],
-    validate: {
-      validator: function (arr) {
-        return arr.length === 512;
-      },
-      message: 'Embedding must be exactly 512 dimensions',
-    },
-  },
   imageUrl: {
     type: String,  // Path to the stored face image
     default: null,

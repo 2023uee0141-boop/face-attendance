@@ -6,8 +6,7 @@
  */
 
 const jwt = require('jsonwebtoken');
-const Admin = require('../models/Admin');
-const Teacher = require('../models/Teacher');
+const User = require('../models/User');
 
 /**
  * Generate JWT token for authenticated user
@@ -39,21 +38,15 @@ const register = async (req, res) => {
       return res.status(400).json({ error: 'Role must be either "admin" or "teacher".' });
     }
 
-    // Check if user already exists in either collection
-    const existingAdmin = await Admin.findOne({ email });
-    const existingTeacher = await Teacher.findOne({ email });
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
 
-    if (existingAdmin || existingTeacher) {
+    if (existingUser) {
       return res.status(409).json({ error: 'A user with this email already exists.' });
     }
 
-    // Create user based on role
-    let user;
-    if (userRole === 'admin') {
-      user = await Admin.create({ name, email, password });
-    } else {
-      user = await Teacher.create({ name, email, password });
-    }
+    // Create user
+    const user = await User.create({ name, email, password, role: userRole });
 
     // Generate token
     const token = generateToken(user._id, userRole);
@@ -94,14 +87,8 @@ const login = async (req, res) => {
       return res.status(400).json({ error: 'Email and password are required.' });
     }
 
-    // Search in both Admin and Teacher collections
-    let user = await Admin.findOne({ email }).select('+password');
-    let role = 'admin';
-
-    if (!user) {
-      user = await Teacher.findOne({ email }).select('+password');
-      role = 'teacher';
-    }
+    // Search in unified User collection
+    const user = await User.findOne({ email }).select('+password');
 
     if (!user) {
       return res.status(401).json({ error: 'Invalid email or password.' });
@@ -114,7 +101,7 @@ const login = async (req, res) => {
     }
 
     // Generate token
-    const token = generateToken(user._id, role);
+    const token = generateToken(user._id, user.role);
 
     console.log(`[AUTH] ${role} logged in: ${email}`);
 

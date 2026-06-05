@@ -6,8 +6,7 @@
  */
 
 const jwt = require('jsonwebtoken');
-const Admin = require('../models/Admin');
-const Teacher = require('../models/Teacher');
+const User = require('../models/User');
 
 /**
  * Middleware to verify JWT token from Authorization header
@@ -25,13 +24,8 @@ const authenticate = async (req, res, next) => {
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Find user based on role
-    let user;
-    if (decoded.role === 'admin') {
-      user = await Admin.findById(decoded.id);
-    } else if (decoded.role === 'teacher') {
-      user = await Teacher.findById(decoded.id);
-    }
+    // Find user
+    const user = await User.findById(decoded.id);
 
     if (!user) {
       return res.status(401).json({ error: 'Invalid token. User not found.' });

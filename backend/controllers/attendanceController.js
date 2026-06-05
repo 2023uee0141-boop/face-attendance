@@ -9,6 +9,7 @@ const fs = require('fs');
 const path = require('path');
 const Student = require('../models/Student');
 const Attendance = require('../models/Attendance');
+const FaceEmbedding = require('../models/FaceEmbedding');
 const { runPythonScript } = require('../utils/pythonRunner');
 
 /**
@@ -99,9 +100,10 @@ const markAttendance = async (req, res) => {
     console.log('[ATTENDANCE] Step 4: Searching for matching student...');
 
     // Get all student embeddings from database for search
-    const students = await Student.find().select('_id name rollNumber embedding');
+    const embeddings = await FaceEmbedding.find().populate('studentId', 'name rollNumber');
+    const embeddingsFiltered = embeddings.filter(e => e.studentId);
 
-    if (students.length === 0) {
+    if (embeddingsFiltered.length === 0) {
       return res.status(404).json({
         error: 'No students registered in the system.',
         step: 'search',
@@ -111,11 +113,11 @@ const markAttendance = async (req, res) => {
     // Prepare embeddings data for search script
     const embeddingsData = {
       query: queryEmbedding,
-      students: students.map((s) => ({
-        id: s._id.toString(),
-        name: s.name,
-        rollNumber: s.rollNumber,
-        embedding: s.embedding,
+      students: embeddingsFiltered.map((e) => ({
+        id: e.studentId._id.toString(),
+        name: e.studentId.name,
+        rollNumber: e.studentId.rollNumber,
+        embedding: e.embedding,
       })),
       threshold: parseFloat(process.env.SIMILARITY_THRESHOLD) || 0.55,
     };
@@ -248,7 +250,7 @@ const getStudentAttendance = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const student = await Student.findById(id).select('-embedding');
+    const student = await Student.findById(id);
     if (!student) {
       return res.status(404).json({ error: 'Student not found.' });
     }
