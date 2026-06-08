@@ -65,23 +65,11 @@ const registerStudent = async (req, res) => {
       return res.status(400).json({ error: 'Face image is required.' });
     }
 
-    // Step 1: Detect face using MTCNN
-    console.log('[STUDENT] Step 1: Detecting face...');
-    const detectResult = await runPythonScript('detect.py', [imagePath]);
 
-    if (!detectResult.success) {
-      return res.status(400).json({
-        error: 'No face detected in the image. Please try again with a clear face photo.',
-        details: detectResult.error,
-      });
-    }
 
-    const alignedFacePath = detectResult.aligned_face_path;
-    console.log(`[STUDENT] Face detected and aligned: ${alignedFacePath}`);
-
-    // Step 2: Generate 512-d embedding using ArcFace
+    // Step 2: Generate 512-d embedding using ArcFace (InsightFace handles detection automatically)
     console.log('[STUDENT] Step 2: Generating face embedding...');
-    const embedResult = await runPythonScript('embed.py', [alignedFacePath]);
+    const embedResult = await runPythonScript('embed.py', [imagePath]);
 
     if (!embedResult.success) {
       return res.status(500).json({

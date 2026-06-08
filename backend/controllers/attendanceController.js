@@ -55,18 +55,7 @@ const markAttendance = async (req, res) => {
       return res.status(400).json({ error: 'Face image is required.' });
     }
 
-    // Step 1: Detect face using MTCNN
-    console.log('[ATTENDANCE] Step 1: Detecting face...');
-    const detectResult = await runPythonScript('detect.py', [imagePath]);
 
-    if (!detectResult.success) {
-      return res.status(400).json({
-        error: 'No face detected. Please ensure your face is clearly visible.',
-        step: 'detection',
-      });
-    }
-
-    const alignedFacePath = detectResult.aligned_face_path;
 
     // Step 2: Spoof detection using Silent-FAS
     console.log('[ATTENDANCE] Step 2: Running spoof detection...');
@@ -83,9 +72,9 @@ const markAttendance = async (req, res) => {
 
     console.log(`[ATTENDANCE] Spoof check passed: ${spoofResult.result} (confidence: ${spoofResult.confidence})`);
 
-    // Step 3: Generate embedding using ArcFace
+    // Step 3: Generate embedding using ArcFace (InsightFace handles detection automatically)
     console.log('[ATTENDANCE] Step 3: Generating face embedding...');
-    const embedResult = await runPythonScript('embed.py', [alignedFacePath]);
+    const embedResult = await runPythonScript('embed.py', [imagePath]);
 
     if (!embedResult.success) {
       return res.status(500).json({

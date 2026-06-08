@@ -91,16 +91,7 @@ def generate_embedding(face_image_path):
     with contextlib.redirect_stdout(io.StringIO()):
         faces = app.get(image)
 
-    if not faces:
-        # If InsightFace can't detect in the aligned image,
-        # try padding the image to give more context
-        h, w = image.shape[:2]
-        padded = cv2.copyMakeBorder(
-            image, h // 2, h // 2, w // 2, w // 2,
-            cv2.BORDER_REPLICATE
-        )
-        with contextlib.redirect_stdout(io.StringIO()):
-            faces = app.get(padded)
+
 
     if not faces:
         return {
