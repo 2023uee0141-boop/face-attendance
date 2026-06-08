@@ -55,6 +55,7 @@ def get_model():
         with contextlib.redirect_stdout(io.StringIO()):
             _model = FaceAnalysis(
                 name='buffalo_l',
+                root='/app/models',
                 allowed_modules=['recognition', 'detection'],
                 providers=['CPUExecutionProvider']
             )
