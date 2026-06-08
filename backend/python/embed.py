@@ -54,7 +54,7 @@ def get_model():
         # Redirect stdout to suppress InsightFace's internal print statements
         with contextlib.redirect_stdout(io.StringIO()):
             _model = FaceAnalysis(
-                name='buffalo_l',
+                name='buffalo_s',
                 root='/app/models',
                 allowed_modules=['recognition', 'detection'],
                 providers=['CPUExecutionProvider']
@@ -78,10 +78,18 @@ def generate_embedding(face_image_path):
     if not os.path.exists(face_image_path):
         return {"success": False, "error": f"Image not found: {face_image_path}"}
 
-    # Load the aligned face image
+    # Load the image
     image = cv2.imread(face_image_path)
     if image is None:
         return {"success": False, "error": f"Failed to load image: {face_image_path}"}
+
+    # Resize image to prevent Out-Of-Memory (OOM) errors during detection
+    # High-res webcam images (e.g. 1080p) consume too much RAM in RetinaFace
+    h, w = image.shape[:2]
+    max_dim = 640
+    if max(h, w) > max_dim:
+        scale = max_dim / float(max(h, w))
+        image = cv2.resize(image, (int(w * scale), int(h * scale)))
 
     # Get the model
     app = get_model()

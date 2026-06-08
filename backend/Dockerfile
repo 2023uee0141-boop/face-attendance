@@ -29,8 +29,8 @@ ENV PATH="/app/venv/bin:$PATH"
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# Pre-download the InsightFace buffalo_l model weights so they are baked into the image
-RUN python3 -c "import os; os.makedirs('/app/models', exist_ok=True); from insightface.app import FaceAnalysis; FaceAnalysis(name='buffalo_l', root='/app/models', allowed_modules=['recognition', 'detection']).prepare(ctx_id=-1, det_size=(160, 160))"
+# Pre-download the InsightFace buffalo_s model weights so they are baked into the image
+RUN python3 -c "import os; os.makedirs('/app/models', exist_ok=True); from insightface.app import FaceAnalysis; FaceAnalysis(name='buffalo_s', root='/app/models', allowed_modules=['recognition', 'detection']).prepare(ctx_id=-1, det_size=(160, 160))"
 
 # Copy the rest of the application files
 COPY . .
